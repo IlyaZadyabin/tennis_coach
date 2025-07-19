@@ -12,6 +12,12 @@ from typing import Dict, List, Any, Optional, Union, cast
 from datetime import datetime
 import sys
 import traceback
+import warnings
+import re
+
+# Suppress SSL warnings for macOS LibreSSL compatibility
+warnings.filterwarnings("ignore", message=".*urllib3.*", category=UserWarning)
+warnings.filterwarnings("ignore", message=".*NotOpenSSLWarning.*", category=UserWarning)
 
 # Handle Google Generative AI import gracefully for IDE
 try:
@@ -34,7 +40,7 @@ class TennisCoach:
             raise ValueError("Gemini API key required. Set GEMINI_API_KEY env var or pass as parameter")
         
         cast(Any, genai).configure(api_key=self.api_key)
-        self.model: Any = cast(Any, genai).GenerativeModel('models/gemini-2.5-flash-lite-preview-06-17')
+        self.model: Any = cast(Any, genai).GenerativeModel('models/gemini-2.5-flash')
         
         # Tennis-specific shot types
         self.shot_types: List[str] = [
@@ -53,7 +59,50 @@ class TennisCoach:
             Count shots made/missed by type (forehand, backhand, serve, volley, etc.). 
             Give technical advice like a professional tennis coach."""
     
-    def analyze_video(self, video_path: str, output_file: str = 'tennis.json') -> Dict[str, Any]:
+    def _parse_json_response(self, text: str) -> Optional[Any]:
+        """Robustly extract and parse JSON from the model response.
+
+        The Gemini model sometimes wraps JSON in Markdown code fences, e.g.:
+            ```json
+            { ... }
+            ```
+        or includes explanatory text. This helper removes code fences and
+        extraneous text before attempting json.loads.
+        Returns the parsed JSON (dict/list) on success, or None on failure.
+        """
+        # Trim whitespace early
+        stripped = text.strip()
+
+        # 1) Attempt to extract any fenced code block that looks like JSON
+        fence_regex = r"```(?:json)?\s*(.*?)\s*```"  # non-greedy match across the full string
+        m = re.search(fence_regex, stripped, flags=re.DOTALL | re.IGNORECASE)
+        if m:
+            candidate = m.group(1)
+            try:
+                return json.loads(candidate.strip())
+            except Exception:
+                # Fall through to other strategies
+                pass
+
+        # 2) Try direct JSON parsing of the whole text
+        try:
+            return json.loads(stripped)
+        except json.JSONDecodeError:
+            pass
+
+        # 3) Fallback: find the first '{' and the last '}' and try parsing that substring
+        start = stripped.find('{')
+        end = stripped.rfind('}')
+        if start != -1 and end != -1 and end > start:
+            try:
+                return json.loads(stripped[start:end + 1])
+            except Exception:
+                pass
+
+        # Parsing failed
+        return None
+
+    def analyze_video(self, video_path: str, output_file: str = 'tennis.json') -> bool:
         """Analyze tennis video and generate shot-by-shot JSON analysis"""
         
         print(f"Starting tennis video analysis of {video_path}...")
@@ -65,11 +114,16 @@ class TennisCoach:
             myfile = cast(Any, genai).upload_file(video_path)
             print(f"✅ Video uploaded successfully: {myfile.name}")
             
-            # Wait for video to be processed
+            # Wait for video to be processed with timeout
             import time
+            max_wait_time = 300  # 5 minutes timeout
+            wait_time = 0
             while myfile.state.name == "PROCESSING":
-                print("⏳ Video processing...")
+                if wait_time >= max_wait_time:
+                    raise RuntimeError(f"Video processing timeout after {max_wait_time} seconds")
+                print(f"⏳ Video processing... ({wait_time}s)")
                 time.sleep(10)
+                wait_time += 10
                 myfile = cast(Any, genai).get_file(myfile.name)
             
             if myfile.state.name == "FAILED":
@@ -83,33 +137,48 @@ class TennisCoach:
         prompt = self.load_prompt()
         
         print(f"Sending video to AI for shot-by-shot analysis...")
-        # Debug log to help trace if the error originates from the Google API
-        print("[DEBUG] Calling Gemini generate_content with video file", file=sys.stderr)
         try:
             # Generate analysis using the uploaded video file
             response = self.model.generate_content([myfile, prompt])
-            print("[DEBUG] Gemini response received", file=sys.stderr)
             analysis_text = response.text
             
-            # Extract JSON from response (AI might include extra text)
-            try:
-                # Find JSON in the response
-                json_start = analysis_text.find('{')
-                json_end = analysis_text.rfind('}') + 1
-                if json_start != -1 and json_end != 0:
-                    json_text = analysis_text[json_start:json_end]
-                    shot_data = json.loads(json_text)
-                else:
-                    raise ValueError("No valid JSON found in AI response")
-            except (json.JSONDecodeError, ValueError) as e:
-                print(f"Warning: Could not parse JSON from AI response: {e}")
-                print("Raw response:", analysis_text[:500])
-                # Create fallback structure
-                shot_data = {
-                    "shots": [],
-                    "error": "Failed to parse AI response",
-                    "raw_response": analysis_text
+            print(f"\n[INFO] Model response length: {len(analysis_text)} characters")
+            
+            # Save complete model response to file
+            with open('model_response_debug.txt', 'w', encoding='utf-8') as f:
+                f.write(f"Model: {self.model.model_name if hasattr(self.model, 'model_name') else 'gemini-2.5-flash-lite-preview-06-17'}\n")
+                f.write(f"Response length: {len(analysis_text)} characters\n")
+                f.write(f"Timestamp: {datetime.now().isoformat()}\n")
+                f.write("="*50 + "\n")
+                f.write("FULL MODEL RESPONSE:\n")
+                f.write("="*50 + "\n")
+                f.write(analysis_text)
+                f.write("\n" + "="*50 + "\n")
+                f.write("END OF MODEL RESPONSE\n")
+            
+            print(f"✅ Model response saved to model_response_debug.txt")
+            
+            # Parse the JSON response directly
+            parsed_data = self._parse_json_response(analysis_text)
+            
+            # Create the final result
+            if parsed_data and isinstance(parsed_data, dict) and 'shots' in parsed_data:
+                # Successfully parsed the tennis analysis - save only the parsed data
+                result = parsed_data
+                print(f"✅ Successfully parsed {len(parsed_data.get('shots', []))} shots")
+                success = True
+            else:
+                # Fallback: save raw response if parsing failed
+                result = {
+                    "raw_response": analysis_text,
+                    "note": "Check model_response_debug.txt for full raw response"
                 }
+                print(f"❌ Failed to parse JSON - saved raw response")
+                success = False
+            
+            with open(output_file, 'w') as f:
+                json.dump(result, f, indent=2)
+            print(f"✅ Structured result saved to {output_file}")
             
             # Clean up uploaded file
             try:
@@ -118,13 +187,7 @@ class TennisCoach:
             except Exception as e:
                 print(f"Warning: Could not delete uploaded file: {e}")
             
-            # Save shot data to tennis.json (the magic file!)
-            with open(output_file, 'w') as f:
-                json.dump(shot_data, f, indent=2)
-            print(f"✅ Shot analysis saved to {output_file}")
-            print(f"🎾 Found {len(shot_data.get('shots', []))} shots in the video")
-            
-            return shot_data
+            return success
             
         except Exception as e:
             # Clean up uploaded file on error
@@ -135,8 +198,6 @@ class TennisCoach:
             # Print full traceback to stderr for easier debugging
             traceback.print_exc(file=sys.stderr)
             raise RuntimeError(f"Error during AI analysis: {str(e)}")
-    
-
 
 
 def main():
@@ -161,10 +222,12 @@ def main():
         output_file = args.output if args.output else 'tennis.json'
         
         # Analyze video
-        shot_data = coach.analyze_video(args.video, output_file)
+        success = coach.analyze_video(args.video, output_file)
         
-        # Results are automatically saved to tennis.json
-        print(f"✅ Analysis complete! Check {output_file} for shot-by-shot data.")
+        if success:
+            print(f"✅ Analysis complete! Model response saved to model_response_debug.txt")
+        else:
+            print(f"❌ Analysis failed! Check model_response_debug.txt for details")
         
         return 0
         
