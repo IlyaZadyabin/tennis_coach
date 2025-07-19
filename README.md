@@ -12,7 +12,7 @@ Turn raw tennis footage into instant analytics and coaching insights with Google
 ```bash
 # (optional) python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-export GEMINI_API_KEY="your-gemini-key"   # get one at makersuite.google.com/app/apikey
+export GEMINI_API_KEY="your-gemini-key"
 ```
 
 ## Quick Start
@@ -39,16 +39,9 @@ The `tennis_coach.py` script accepts several optional flags to give you more con
 
 | Flag | Description |
 |------|-------------|
-| `--local` | Use the existing `tennis.json` in the working directory instead of calling the Gemini API. Great for offline demos or when you’ve already run the analysis. |
 | `--output <file>` | Write the analysis JSON to a custom path (default: `tennis.json`). |
 | `--api-key <key>` | Provide your Gemini API key on the command line instead of using the `GEMINI_API_KEY` environment variable. |
 | `--prompt <file>` | Supply an alternative prompt file instead of the default `tennis_prompt.txt`. |
-
-Example – reuse cached analysis locally:
-
-```bash
-python tennis_coach.py video.mp4 --local
-```
 
 Example – run the analysis and save to a custom file:
 

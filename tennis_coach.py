@@ -14,7 +14,6 @@ import sys
 import traceback
 import warnings
 import re
-import shutil
 
 # Suppress SSL warnings for macOS LibreSSL compatibility
 warnings.filterwarnings("ignore", message=".*urllib3.*", category=UserWarning)
@@ -206,7 +205,6 @@ def main():
     parser.add_argument('video', help='Path to tennis video file')
     parser.add_argument('--output', '-o', help='Output JSON file for analysis results')
     parser.add_argument('--api-key', help='Gemini API key (or set GEMINI_API_KEY env var)')
-    parser.add_argument('--local', action='store_true', help='Use existing tennis.json instead of calling Gemini')
     parser.add_argument('--prompt', default='tennis_prompt.txt', help='Custom prompt file')
     
     args = parser.parse_args()
@@ -216,26 +214,6 @@ def main():
         print(f"Error: Video file '{args.video}' not found")
         return 1
     
-    # If local mode, skip API and reuse existing tennis.json
-    if args.local:
-        source_json = 'tennis.json'
-        if not os.path.exists(source_json):
-            print(f"Error: Local mode requested but '{source_json}' not found in current directory")
-            return 1
-
-        # Determine output file path
-        output_file = args.output if args.output else source_json
-        if output_file != source_json:
-            try:
-                shutil.copyfile(source_json, output_file)
-                print(f"✅ Copied existing analysis from {source_json} to {output_file}")
-            except Exception as e:
-                print(f"Error copying file: {e}")
-                return 1
-        else:
-            print(f"✅ Using existing analysis file: {source_json}")
-
-        return 0
 
     try:
         
