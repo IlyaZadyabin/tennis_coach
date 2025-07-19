@@ -7,7 +7,12 @@ Demonstrates the complete tennis analysis pipeline
 import os
 import subprocess
 import sys
+import warnings
 from pathlib import Path
+
+# Suppress SSL warnings for macOS LibreSSL compatibility
+warnings.filterwarnings("ignore", message=".*urllib3.*", category=UserWarning)
+warnings.filterwarnings("ignore", message=".*NotOpenSSLWarning.*", category=UserWarning)
 
 def check_requirements():
     """Check if all requirements are installed"""
@@ -52,7 +57,11 @@ def run_analysis(video_path):
     ], capture_output=True, text=True)
     
     if result.returncode != 0:
-        print(f"❌ Analysis failed: {result.stderr}")
+        print(f"❌ Analysis failed with return code: {result.returncode}")
+        if result.stderr:
+            print(f"Error output: {result.stderr}")
+        if result.stdout:
+            print(f"Standard output: {result.stdout}")
         return False
     
     print("✅ Analysis complete - tennis.json created")
@@ -65,7 +74,11 @@ def run_analysis(video_path):
         ], capture_output=True, text=True)
         
         if result.returncode != 0:
-            print(f"❌ Visualization failed: {result.stderr}")
+            print(f"❌ Visualization failed with return code: {result.returncode}")
+            if result.stderr:
+                print(f"Error output: {result.stderr}")
+            if result.stdout:
+                print(f"Standard output: {result.stdout}")
             return False
         
         print("✅ Video visualization complete - tennis_analysis_output.mp4 created")
