@@ -1,0 +1,25 @@
+# Python artefacts
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual-env / IDE
+.venv/
+venv/
+env/
+.env/
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# AI-generated outputs
+*_analysis_output.*
+tennis_analysis_output.mp4
+
+# Large raw videos
+*.mp4
+*.mov
+*.avi
+*.mkv
