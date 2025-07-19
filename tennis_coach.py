@@ -6,22 +6,12 @@ Analyzes tennis videos to provide coaching feedback and shot statistics
 
 import os
 import json
-import base64
 import argparse
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Union, cast
 from datetime import datetime
 import sys
 import traceback
-
-# Handle OpenCV import gracefully for IDE
-try:
-    import cv2
-    CV2_AVAILABLE = True
-except ImportError:
-    # IDE may not have the package installed during development
-    cv2 = None
-    CV2_AVAILABLE = False
 
 # Handle Google Generative AI import gracefully for IDE
 try:
@@ -51,52 +41,6 @@ class TennisCoach:
             'forehand', 'backhand', 'serve', 'volley', 
             'drop_shot', 'overhead', 'smash', 'return'
         ]
-        
-    def extract_frames(self, video_path: str, fps: float = 1.0) -> List[str]:
-        """Extract frames from video at specified FPS and encode as base64"""
-        if not CV2_AVAILABLE or cv2 is None:
-            raise ImportError("opencv-python package not installed. Run: pip3 install -r requirements.txt")
-        
-        frames = []
-        cap = cv2.VideoCapture(video_path)
-        
-        if not cap.isOpened():
-            raise ValueError(f"Could not open video file: {video_path}")
-        
-        # Get video properties
-        video_fps = cap.get(cv2.CAP_PROP_FPS)
-        frame_interval = int(video_fps / fps)
-        
-        frame_count = 0
-        extracted_count = 0
-        
-        print(f"Extracting frames at {fps} FPS from video...")
-        
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-                
-            if frame_count % frame_interval == 0:
-                # Resize frame for processing (optional)
-                height, width = frame.shape[:2]
-                if width > 1280:
-                    scale = 1280 / width
-                    new_width = int(width * scale)
-                    new_height = int(height * scale)
-                    frame = cv2.resize(frame, (new_width, new_height))
-                
-                # Encode frame as base64
-                _, buffer = cv2.imencode('.jpg', frame)
-                frame_b64 = base64.b64encode(buffer.tobytes()).decode('utf-8')
-                frames.append(frame_b64)
-                extracted_count += 1
-                
-            frame_count += 1
-        
-        cap.release()
-        print(f"Extracted {extracted_count} frames for analysis")
-        return frames
     
     def load_prompt(self, prompt_file: str = 'tennis_prompt.txt') -> str:
         """Load the tennis coaching prompt from file"""
@@ -114,35 +58,36 @@ class TennisCoach:
         
         print(f"Starting tennis video analysis of {video_path}...")
         
-        # Extract frames
-        frames = self.extract_frames(video_path, fps=1.0)
-        
-        if not frames:
-            raise ValueError("No frames extracted from video")
+        # Upload the entire video file to Gemini for proper analysis
+        print(f"Uploading video file to Gemini...")
+        try:
+            # Upload video file using Files API
+            myfile = cast(Any, genai).upload_file(video_path)
+            print(f"✅ Video uploaded successfully: {myfile.name}")
+            
+            # Wait for video to be processed
+            import time
+            while myfile.state.name == "PROCESSING":
+                print("⏳ Video processing...")
+                time.sleep(10)
+                myfile = cast(Any, genai).get_file(myfile.name)
+            
+            if myfile.state.name == "FAILED":
+                raise RuntimeError(f"Video processing failed: {myfile.state}")
+                
+        except Exception as e:
+            print(f"Error uploading video: {e}")
+            raise RuntimeError(f"Failed to upload video: {str(e)}")
         
         # Load prompt
         prompt = self.load_prompt()
         
-        # Prepare content for Gemini - use simplified approach for now
-        # Since this is a demo, we'll process a representative sample of frames
-        max_frames = min(len(frames), 10)  # Limit frames for API constraints
-        step = max(1, len(frames) // max_frames) if len(frames) > max_frames else 1
-        
-        selected_frames = []
-        for i in range(0, len(frames), step):
-            if len(selected_frames) >= max_frames:
-                break
-            selected_frames.append(frames[i])
-        
-        # For demo purposes, we'll create a combined prompt
-        content = f"{prompt}\n\nAnalyzing {len(selected_frames)} frames from the tennis video."
-        
-        print(f"Sending prompt to AI for shot-by-shot analysis of {len(selected_frames)} frames...")
+        print(f"Sending video to AI for shot-by-shot analysis...")
         # Debug log to help trace if the error originates from the Google API
-        print("[DEBUG] Calling Gemini generate_content", file=sys.stderr)
+        print("[DEBUG] Calling Gemini generate_content with video file", file=sys.stderr)
         try:
-            # Generate analysis
-            response = self.model.generate_content(content)
+            # Generate analysis using the uploaded video file
+            response = self.model.generate_content([myfile, prompt])
             print("[DEBUG] Gemini response received", file=sys.stderr)
             analysis_text = response.text
             
@@ -166,6 +111,13 @@ class TennisCoach:
                     "raw_response": analysis_text
                 }
             
+            # Clean up uploaded file
+            try:
+                cast(Any, genai).delete_file(myfile.name)
+                print("🗑️ Cleaned up uploaded video file")
+            except Exception as e:
+                print(f"Warning: Could not delete uploaded file: {e}")
+            
             # Save shot data to tennis.json (the magic file!)
             with open(output_file, 'w') as f:
                 json.dump(shot_data, f, indent=2)
@@ -175,6 +127,11 @@ class TennisCoach:
             return shot_data
             
         except Exception as e:
+            # Clean up uploaded file on error
+            try:
+                cast(Any, genai).delete_file(myfile.name)
+            except:
+                pass
             # Print full traceback to stderr for easier debugging
             traceback.print_exc(file=sys.stderr)
             raise RuntimeError(f"Error during AI analysis: {str(e)}")
