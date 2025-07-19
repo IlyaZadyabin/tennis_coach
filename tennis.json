@@ -1,0 +1,148 @@
+{
+  "shots": [
+    {
+      "timestamp_of_outcome": "0:06.5",
+      "result": "made",
+      "shot_type": "Backhand crosscourt",
+      "total_shots_made_so_far": 1,
+      "total_shots_missed_so_far": 0,
+      "total_forehands_made_so_far": 0,
+      "total_backhands_made_so_far": 1,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "A solid start to the rally. You've got a good shoulder turn, which is fundamental for the two-handed backhand. To get more depth, focus on driving more with your back leg and extending fully through the contact point towards your target."
+    },
+    {
+      "timestamp_of_outcome": "0:11.8",
+      "result": "made",
+      "shot_type": "Forehand crosscourt",
+      "total_shots_made_so_far": 2,
+      "total_shots_missed_so_far": 0,
+      "total_forehands_made_so_far": 1,
+      "total_backhands_made_so_far": 1,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "Good preparation with the unit turn. However, the racket face was a bit too open at contact, resulting in a high, loopy ball. Concentrate on keeping your wrist firm and brushing up the back of the ball to generate heavier topspin and a more penetrating trajectory."
+    },
+    {
+      "timestamp_of_outcome": "0:18.7",
+      "result": "made",
+      "shot_type": "Forehand crosscourt",
+      "total_shots_made_so_far": 3,
+      "total_shots_missed_so_far": 0,
+      "total_forehands_made_so_far": 2,
+      "total_backhands_made_so_far": 1,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "You got the ball back in play, but the preparation was rushed. This led to a shortened backswing and a 'pushed' shot rather than a full stroke. Give yourself more space from the ball to allow for a complete, fluid swing, which will naturally generate more pace and control."
+    },
+    {
+      "timestamp_of_outcome": "0:24.0",
+      "result": "made",
+      "shot_type": "Forehand crosscourt",
+      "total_shots_made_so_far": 4,
+      "total_shots_missed_so_far": 0,
+      "total_forehands_made_so_far": 3,
+      "total_backhands_made_so_far": 1,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "Excellent. The body rotation was much better here. You achieved a nice low-to-high swing path, which created quality topspin and depth. The follow-through finishing over your shoulder shows the kinetic chain is working properly. That's the benchmark."
+    },
+    {
+      "timestamp_of_outcome": "0:29.8",
+      "result": "missed",
+      "shot_type": "Backhand crosscourt",
+      "total_shots_made_so_far": 4,
+      "total_shots_missed_so_far": 1,
+      "total_forehands_made_so_far": 3,
+      "total_backhands_made_so_far": 1,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "The ball was too close to your body at the point of contact, forcing you to wrap around it instead of hitting through it. This is a common cause for backhands into the net. Focus on maintaining your spacing and meeting the ball out in front of your body."
+    },
+    {
+      "timestamp_of_outcome": "0:37.4",
+      "result": "missed",
+      "shot_type": "Forehand crosscourt",
+      "total_shots_made_so_far": 4,
+      "total_shots_missed_so_far": 2,
+      "total_forehands_made_so_far": 3,
+      "total_backhands_made_so_far": 1,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "Your racket head dropped just before contact, causing the ball to dive into the net. This often happens when you look up to see where your shot is going. Keep your head still and your eyes locked on the ball through the entire hitting zone. A high follow-through will ensure you clear the net."
+    },
+    {
+      "timestamp_of_outcome": "0:42.7",
+      "result": "made",
+      "shot_type": "Backhand slice",
+      "total_shots_made_so_far": 5,
+      "total_shots_missed_so_far": 2,
+      "total_forehands_made_so_far": 3,
+      "total_backhands_made_so_far": 2,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "Great adjustment to a low, wide ball. You used your legs effectively to get down and underneath it, executing a controlled slice to stay in the point. This is an essential defensive skill. Well done."
+    },
+    {
+      "timestamp_of_outcome": "0:50.0",
+      "result": "made",
+      "shot_type": "Forehand crosscourt",
+      "total_shots_made_so_far": 6,
+      "total_shots_missed_so_far": 2,
+      "total_forehands_made_so_far": 4,
+      "total_backhands_made_so_far": 2,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "Textbook footwork. You used quick, small adjustment steps to put yourself in the perfect position to strike the ball. This setup allowed for great balance and timing, resulting in a clean, powerful shot. Replicate this preparation on every ball."
+    },
+    {
+      "timestamp_of_outcome": "1:00.6",
+      "result": "missed",
+      "shot_type": "Backhand crosscourt",
+      "total_shots_made_so_far": 6,
+      "total_shots_missed_so_far": 3,
+      "total_forehands_made_so_far": 4,
+      "total_backhands_made_so_far": 2,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "You were reaching for the ball and your weight was falling away from the court. All power and control is lost when you're off-balance. Take that extra step to get your body behind the ball, allowing you to transfer your weight forward into the shot."
+    },
+    {
+      "timestamp_of_outcome": "1:06.4",
+      "result": "missed",
+      "shot_type": "Backhand crosscourt",
+      "total_shots_made_so_far": 6,
+      "total_shots_missed_so_far": 4,
+      "total_forehands_made_so_far": 4,
+      "total_backhands_made_so_far": 2,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "This swing was generated entirely by your arms. Your lower body was static. Remember, your power comes from the ground up. Load your weight on your back foot, then drive through with your hips and torso as you swing. Your legs should be doing the work, not just your arms."
+    },
+    {
+      "timestamp_of_outcome": "1:13.6",
+      "result": "missed",
+      "shot_type": "Forehand crosscourt",
+      "total_shots_made_so_far": 6,
+      "total_shots_missed_so_far": 5,
+      "total_forehands_made_so_far": 4,
+      "total_backhands_made_so_far": 2,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "You were late preparing for the shot. The racket needs to be back by the time the opponent's ball crosses the net. Because your preparation was late, you had to rush the entire motion and couldn't get the racket head below the ball to provide lift. Early preparation is non-negotiable."
+    },
+    {
+      "timestamp_of_outcome": "1:23.6",
+      "result": "made",
+      "shot_type": "Backhand crosscourt",
+      "total_shots_made_so_far": 7,
+      "total_shots_missed_so_far": 5,
+      "total_forehands_made_so_far": 4,
+      "total_backhands_made_so_far": 3,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "Excellent correction! You turned your shoulders early, you met the ball well out in front, and your follow-through extended toward the target. This shot had much better structure and control. This is the backhand form you need to keep building on."
+    }
+  ]
+}

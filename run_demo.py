@@ -9,6 +9,7 @@ import subprocess
 import sys
 import warnings
 from pathlib import Path
+import argparse
 
 # Suppress SSL warnings for macOS LibreSSL compatibility
 warnings.filterwarnings("ignore", message=".*urllib3.*", category=UserWarning)
@@ -42,19 +43,25 @@ def check_api_key():
         print("Get your key from: https://makersuite.google.com/app/apikey")
         return False
 
-def run_analysis(video_path):
+def run_analysis(video_path, local=False):
     """Run the tennis analysis pipeline"""
     if not Path(video_path).exists():
         print(f"❌ Video file not found: {video_path}")
         return False
-    
+
     print(f"\n🎾 Starting tennis analysis for: {video_path}")
-    
-    # Step 1: Generate analysis (creates tennis.json)
-    print("\n📊 Step 1: Generating AI analysis...")
-    result = subprocess.run([
-        sys.executable, 'tennis_coach.py', video_path
-    ], capture_output=True, text=True)
+
+    # Step 1: Generate or reuse analysis (creates tennis.json)
+    if local:
+        print("\n📊 Step 1: Using existing analysis (local mode)...")
+    else:
+        print("\n📊 Step 1: Generating AI analysis...")
+
+    cmd = [sys.executable, 'tennis_coach.py', video_path]
+    if local:
+        cmd.append('--local')
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
     
     if result.returncode != 0:
         print(f"❌ Analysis failed with return code: {result.returncode}")
@@ -92,24 +99,23 @@ def main():
     print("🎾 Tennis AI Coach Demo")
     print("=" * 40)
     
+    # Argument parsing
+    parser = argparse.ArgumentParser(description='Run Tennis AI Coach demo')
+    parser.add_argument('video', help='Path to tennis video file')
+    parser.add_argument('--local', action='store_true', help='Reuse existing tennis.json and skip API call')
+    args = parser.parse_args()
+
+    video_path = args.video
+
     # Check setup
     if not check_requirements():
         return 1
-    
-    if not check_api_key():
+
+    if not args.local and not check_api_key():
         return 1
-    
-    # Get video file
-    if len(sys.argv) > 1:
-        video_path = sys.argv[1]
-    else:
-        print("\nUsage: python run_demo.py <tennis_video.mp4>")
-        print("\nExample:")
-        print("  python run_demo.py my_tennis_match.mp4")
-        return 1
-    
+
     # Run the complete pipeline
-    success = run_analysis(video_path)
+    success = run_analysis(video_path, local=args.local)
     
     if success:
         print("\n🎉 Demo Complete!")

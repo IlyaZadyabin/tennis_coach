@@ -5,9 +5,67 @@ import json
 from datetime import datetime
 import textwrap
 import time
-from typing import Any, cast
+from typing import Any, cast, Tuple, Optional
 import argparse
 import os
+
+# -------------------------------------------------------------
+# FreeType text rendering helper (full Unicode support)
+# -------------------------------------------------------------
+try:
+    _ft2 = cv2.freetype.createFreeType2()  # type: ignore[attr-defined]
+
+    # Common system fonts that cover a wide Unicode range
+    _font_candidates = [
+        "/Library/Fonts/Arial Unicode.ttf",  # macOS (some installs)
+        "/System/Library/Fonts/Supplemental/Arial.ttf",  # macOS Ventura+
+        "/System/Library/Fonts/SFNS.ttf",  # macOS (older)
+        "/System/Library/Fonts/SFNSText.ttf",
+        "/System/Library/Fonts/Helvetica.ttc",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  # Linux
+    ]
+
+    _font_path = next((p for p in _font_candidates if os.path.exists(p)), None)
+    if _font_path:
+        _ft2.loadFontData(fontFileName=_font_path, id=0)
+    else:
+        # If no font found, disable FreeType to fall back gracefully
+        _ft2 = None
+except (AttributeError, cv2.error):
+    # FreeType module not available in this OpenCV build
+    _ft2 = None
+
+
+def _draw_text(img, text: str, org: Tuple[int, int], font_scale: float, color: Tuple[int, int, int],
+               thickness: int, border_color: Optional[Tuple[int, int, int]] = None,
+               border_thickness: int = 0, line_type: int = cv2.LINE_AA) -> None:
+    """Render text using FreeType when available; fallback to Hershey fonts.
+
+    Args:
+        img: destination image (modified in place)
+        text: string to draw
+        org: bottom-left corner (x, y)
+        font_scale: same meaning as cv2.putText when falling back; when using
+                     FreeType it is converted to a pixel height (approx 40*scale).
+        color: BGR color tuple for main text
+        thickness: thickness of main text strokes
+        border_color: optional BGR color for outline
+        border_thickness: stroke thickness for outline
+        line_type: cv2 line type
+    """
+
+    if _ft2 is not None:
+        pixel_height = max(1, int(font_scale * 40))  # rough mapping
+        if border_color and border_thickness > 0:
+            _ft2.putText(img, text, org, pixel_height, border_color, border_thickness, line_type, False)
+        _ft2.putText(img, text, org, pixel_height, color, thickness, line_type, False)
+    else:
+        # Border (draw first so main text overlays it)
+        if border_color and border_thickness > 0:
+            cv2.putText(img, text, org, cv2.FONT_HERSHEY_SIMPLEX, font_scale,
+                        border_color, border_thickness, line_type)
+        cv2.putText(img, text, org, cv2.FONT_HERSHEY_SIMPLEX, font_scale,
+                    color, thickness, line_type)
 
 # -----------------------------
 # CLI argument parsing
@@ -191,10 +249,9 @@ while cap.isOpened():
         text_x = head_x - text_size[0] // 2
         text_y = arrow_tip_y - 15
         
-        # Black border for visibility
-        cv2.putText(frame, text, (text_x, text_y), font, 2.2, (0, 0, 0), 12, cv2.LINE_AA)
-        # White fill
-        cv2.putText(frame, text, (text_x, text_y), font, 2.2, (255, 255, 255), 5, cv2.LINE_AA)
+        # Draw player label with border (supports Unicode via FreeType)
+        _draw_text(frame, text, (text_x, text_y), 2.2, (255, 255, 255), 5,
+                   border_color=(0, 0, 0), border_thickness=12)
 
     # Calculate current shot statistics
     current_shots_made = 0
@@ -267,11 +324,9 @@ while cap.isOpened():
         # Determine color (animate first two lines for overall stats)
         text_color = current_color if i < 2 else white_color
         
-        # Draw text with border
-        cv2.putText(frame, stat_text, (stats_x, y_pos), stats_font, stats_scale, 
-                    stats_border, stats_border_thickness, cv2.LINE_AA)
-        cv2.putText(frame, stat_text, (stats_x, y_pos), stats_font, stats_scale, 
-                    text_color, stats_thickness, cv2.LINE_AA)
+        # Draw statistic line with border
+        _draw_text(frame, stat_text, (stats_x, y_pos), stats_scale, text_color, stats_thickness,
+                   border_color=stats_border, border_thickness=stats_border_thickness)
 
     # Display coaching feedback if available
     if current_feedback:
@@ -285,8 +340,12 @@ while cap.isOpened():
 
         # Wrap text to fit within 80% of screen width
         max_width = int(width * 0.8)
-        wrapped_lines = wrap_text(current_feedback, feedback_font, feedback_scale, 
-                                feedback_thickness, max_width)
+        # If FreeType unavailable, replace em-dash to avoid '???' glyphs
+        sanitized_feedback = current_feedback
+        if _ft2 is None:
+            sanitized_feedback = sanitized_feedback.replace('\u2014', '-')
+        wrapped_lines = wrap_text(sanitized_feedback, feedback_font, feedback_scale, 
+                                  feedback_thickness, max_width)
 
         # Calculate total height of wrapped text
         total_height = len(wrapped_lines) * feedback_spacing
@@ -298,11 +357,9 @@ while cap.isOpened():
             feedback_x = (width - text_size[0]) // 2
             feedback_y = start_y + (i * feedback_spacing)
 
-            # Draw text with border for visibility
-            cv2.putText(frame, line, (feedback_x, feedback_y), feedback_font, feedback_scale, 
-                        feedback_border, feedback_border_thickness, cv2.LINE_AA)
-            cv2.putText(frame, line, (feedback_x, feedback_y), feedback_font, feedback_scale, 
-                        feedback_color, feedback_thickness, cv2.LINE_AA)
+            # Draw feedback text with border (supports Unicode)
+            _draw_text(frame, line, (feedback_x, feedback_y), feedback_scale, feedback_color, feedback_thickness,
+                       border_color=feedback_border, border_thickness=feedback_border_thickness)
 
     # Store the processed frame
     processed_frames.append(frame.copy())

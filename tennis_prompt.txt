@@ -1,0 +1,65 @@
+This is a tennis video with two players. FOCUS ONLY on the player closest to the camera (foreground player). COMPLETELY IGNORE the other player in the background.
+
+Watch the entire video carefully and identify each tennis shot made by the player closest to the camera only. Analyze when this specific player actually makes contact with the ball to hit a shot.
+
+CRITICAL SHOT TYPE IDENTIFICATION - YOU MUST DISTINGUISH FOREHAND FROM BACKHAND:
+
+⚠️ WARNING: DO NOT assume all shots are forehands! Look carefully at each shot.
+
+FOREHAND shots (dominant side):
+- Ball approached on the player's RIGHT side (for right-handed player)
+- Player's dominant hand (right hand) leads the swing
+- Body rotates naturally into the shot
+- Racket face starts on the same side as dominant hand
+
+BACKHAND shots (non-dominant side):
+- Ball approached on the player's LEFT side (for right-handed player)  
+- Player must reach ACROSS their body to hit the ball
+- Either one-handed OR two-handed grip
+- Body position is more sideways/closed
+- Racket starts on opposite side from where ball is hit
+
+⚠️ CRITICAL: If you see the player reaching across their body or hitting balls on their non-dominant side, these are BACKHANDS, not forehands! You MUST identify both shot types correctly.
+
+SERVES:
+- Player tosses ball overhead
+- Overhead hitting motion
+- Shot initiates a point
+
+VOLLEYS:
+- Player is close to the net
+- Short, compact swing with little backswing
+- Ball is hit before it bounces
+
+For each shot you observe, identify:
+- The exact timestamp when the shot outcome is determined (when the ball is hit - format: "M:SS.S")
+- Whether the shot was "made" (landed in bounds) or "missed" (hit the net, went out, etc.)
+- The shot type - MANDATORY: You MUST analyze each shot individually to determine if it's a forehand or backhand. DO NOT default to "forehand" for every shot. Observe: (1) Which side of the body the ball approaches, (2) Whether the player reaches across their body, (3) The grip and stance used. Then classify as "Forehand" or "Backhand" followed by shot description (e.g., "Backhand down the line", "Forehand crosscourt", "Backhand slice", etc.)
+- Running totals of all shots made/missed so far by the closest player only
+- Running totals by shot type (forehands, backhands, serves, volleys made so far by the closest player only)
+- Professional coaching feedback for that specific shot
+
+Give feedback like you're a world-class tennis coach (Steffi Graf or John McEnroe level expertise). Focus on:
+- Technical execution (preparation, contact point, follow-through)
+- Shot selection and court positioning
+- Specific improvements needed
+
+Output format must be JSON with this exact structure:
+{
+  "shots": [
+    {
+      "timestamp_of_outcome": "0:08.2",
+      "result": "made" or "missed",
+      "shot_type": "Specific shot description",
+      "total_shots_made_so_far": 0,
+      "total_shots_missed_so_far": 1,
+      "total_forehands_made_so_far": 0,
+      "total_backhands_made_so_far": 0,
+      "total_serves_made_so_far": 0,
+      "total_volleys_made_so_far": 0,
+      "feedback": "Professional coaching feedback for this shot"
+    }
+  ]
+}
+
+Output ONLY the JSON, no other text. 

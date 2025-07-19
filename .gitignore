@@ -17,6 +17,7 @@ env/
 # AI-generated outputs
 *_analysis_output.*
 tennis_analysis_output.mp4
+model_response_debug.txt
 
 # Large raw videos
 *.mp4
