@@ -2,6 +2,8 @@
 
 Turn raw tennis footage into instant analytics and coaching insights with Google Gemini.
 
+![Tennis Analysis Showcase](result.png)
+
 ## Key Features
 - Shot detection (forehand, backhand, serve, volley, …)
 - Make / miss stats & cumulative score
