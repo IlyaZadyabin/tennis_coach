@@ -232,15 +232,15 @@ while cap.isOpened():
     # Display shot statistics in top left
     stats_font = cv2.FONT_HERSHEY_SIMPLEX
     stats_border = (0, 0, 0)  # Black border
-    stats_scale = 1.8
-    stats_thickness = 5
-    stats_border_thickness = 10
-    stats_spacing = 70
+    stats_scale = 0.8
+    stats_thickness = 2
+    stats_border_thickness = 4
+    stats_spacing = 35
     white_color = (255, 255, 255)
 
     # Position for stats (top left with padding)
-    stats_x = 30
-    stats_y = 120
+    stats_x = 20
+    stats_y = 60
 
     # Calculate animation color if needed
     if last_shot_time is not None:
@@ -276,12 +276,12 @@ while cap.isOpened():
     # Display coaching feedback if available
     if current_feedback:
         feedback_font = cv2.FONT_HERSHEY_SIMPLEX
-        feedback_scale = 1.6
+        feedback_scale = 0.7
         feedback_color = (255, 255, 255)  # White text
         feedback_border = (0, 0, 0)  # Black border
-        feedback_thickness = 3
-        feedback_border_thickness = 7
-        feedback_spacing = 55
+        feedback_thickness = 2
+        feedback_border_thickness = 4
+        feedback_spacing = 30
 
         # Wrap text to fit within 80% of screen width
         max_width = int(width * 0.8)
@@ -290,7 +290,7 @@ while cap.isOpened():
 
         # Calculate total height of wrapped text
         total_height = len(wrapped_lines) * feedback_spacing
-        start_y = height - 100 - total_height
+        start_y = height - 50 - total_height
 
         # Draw each line centered
         for i, line in enumerate(wrapped_lines):
