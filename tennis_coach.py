@@ -19,21 +19,12 @@ import re
 warnings.filterwarnings("ignore", message=".*urllib3.*", category=UserWarning)
 warnings.filterwarnings("ignore", message=".*NotOpenSSLWarning.*", category=UserWarning)
 
-# Handle Google Generative AI import gracefully for IDE
-try:
-    import google.generativeai as genai
-    GENAI_AVAILABLE = True
-except ImportError:
-    # IDE may not have the package installed during development
-    genai = None
-    GENAI_AVAILABLE = False
+import google.generativeai as genai
 
 
 class TennisCoach:
     def __init__(self, api_key: Optional[str] = None):
         """Initialize the Tennis Coach with Gemini API"""
-        if not GENAI_AVAILABLE or genai is None:
-            raise ImportError("google-generativeai package not installed. Run: pip3 install -r requirements.txt")
         
         self.api_key: str = api_key or os.getenv('GEMINI_API_KEY') or ""
         if not self.api_key:
