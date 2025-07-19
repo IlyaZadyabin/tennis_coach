@@ -34,7 +34,7 @@ class TennisCoach:
             raise ValueError("Gemini API key required. Set GEMINI_API_KEY env var or pass as parameter")
         
         cast(Any, genai).configure(api_key=self.api_key)
-        self.model: Any = cast(Any, genai).GenerativeModel('models/gemini-2.0-flash-lite')
+        self.model: Any = cast(Any, genai).GenerativeModel('models/gemini-2.5-flash-lite-preview-06-17')
         
         # Tennis-specific shot types
         self.shot_types: List[str] = [
